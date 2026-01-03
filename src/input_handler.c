@@ -27,6 +27,9 @@
 #define NAV_KEY_UP          4
 #define NAV_KEY_DOWN        5
 #define NAV_KEY_SELECT      12
+#define NAV_KEY_SPACE_L     16
+#define NAV_KEY_SPACE_M     17
+#define NAV_KEY_SPACE_R     18
 #define NAV_KEY_VOLUME_UP   37
 #define NAV_KEY_VOLUME_DOWN 38
 
@@ -143,8 +146,25 @@ static bool input_hook_callback(plugin_input_event_t* event, void* user_data) {
             return true;  // Consume event
         }
 
-        // Volume up (no SUPER needed)
-        if (event->key == NAV_KEY_VOLUME_UP) {
+        // SUPER + Space: Pause/Play (any of the three space keys)
+        if (super_held && (event->key == NAV_KEY_SPACE_L ||
+                           event->key == NAV_KEY_SPACE_M ||
+                           event->key == NAV_KEY_SPACE_R)) {
+            asp_log_info("musicplayer", "SUPER+SPACE: Pause/play");
+            if (state->state == PLAYBACK_PLAYING) {
+                audio_pause();
+                state->state = PLAYBACK_PAUSED;
+                asp_log_info("musicplayer", "Paused");
+            } else if (state->state == PLAYBACK_PAUSED) {
+                audio_resume();
+                state->state = PLAYBACK_PLAYING;
+                asp_log_info("musicplayer", "Resumed");
+            }
+            return true;  // Consume event
+        }
+
+        // SUPER + Volume up: Increase volume
+        if (super_held && event->key == NAV_KEY_VOLUME_UP) {
             if (state->volume <= 95) {
                 state->volume += 5;
             } else {
@@ -152,11 +172,11 @@ static bool input_hook_callback(plugin_input_event_t* event, void* user_data) {
             }
             audio_set_volume(state->volume);
             asp_log_info("musicplayer", "Volume: %d%%", state->volume);
-            return false;  // Don't consume - let system handle too
+            return true;  // Consume event
         }
 
-        // Volume down (no SUPER needed)
-        if (event->key == NAV_KEY_VOLUME_DOWN) {
+        // SUPER + Volume down: Decrease volume
+        if (super_held && event->key == NAV_KEY_VOLUME_DOWN) {
             if (state->volume >= 5) {
                 state->volume -= 5;
             } else {
@@ -164,7 +184,7 @@ static bool input_hook_callback(plugin_input_event_t* event, void* user_data) {
             }
             audio_set_volume(state->volume);
             asp_log_info("musicplayer", "Volume: %d%%", state->volume);
-            return false;  // Don't consume
+            return true;  // Consume event
         }
     }
 

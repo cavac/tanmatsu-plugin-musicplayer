@@ -87,6 +87,14 @@ static int status_widget_callback(pax_buf_t* buffer, int x_right, int y, int hei
         text[text_len++] = num_buf[i];
     }
 
+    // Add space and volume percentage
+    text[text_len++] = ' ';
+    num_len = int_to_str(num_buf, state->volume);
+    for (int i = 0; i < num_len; i++) {
+        text[text_len++] = num_buf[i];
+    }
+    text[text_len++] = '%';
+
     text[text_len] = '\0';
 
     // Calculate width and draw

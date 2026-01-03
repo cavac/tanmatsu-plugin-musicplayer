@@ -1429,6 +1429,8 @@ static void mp3d_DCT_II(float *grbuf, int n)
 #ifndef MINIMP3_FLOAT_OUTPUT
 static int16_t mp3d_scale_pcm(float sample)
 {
+    /* Scale down by 50% to prevent clipping during loud passages */
+    sample = sample * 0.5f;
 #if HAVE_ARMV6
     int32_t s32 = (int32_t)(sample + .5f);
     s32 -= (s32 < 0);
